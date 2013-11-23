@@ -7,6 +7,7 @@ import dns.zone
 import dns.resolver
 import dns.rdtypes.IN
 import dns.rdtypes.ANY
+import dns.name
 
 __program__         = 'dns-spy'
 __version__         = 'v0.1'
@@ -36,9 +37,10 @@ def Usage():
 	print __author__
 	print __doc__ % sys.argv[0]
 	exit(1)
+		
 
 def DTypes(domain):
-	print "# Performing lookup based on domain types."
+	
 	for _type in dns.rdtypes.ANY.__all__ + dns.rdtypes.IN.__all__:
 		try:
 			#print _type
@@ -49,9 +51,16 @@ def DTypes(domain):
 			pass # No Answer.
 
 def Dictionary(domain):
-	# for now hardcoded.
-	subs = ['www','demo', 'api']		
-	pass
+	# for now hardcoded.	
+	subs = ['www','demo', 'api', 'test']		
+	for sub in subs:
+		q = sub + "." + domain
+		try:
+			answers = dns.resolver.query(q)
+			for rdata in answers:
+				print q, rdata
+		except:
+			pass # No match.
 	
 
 if __name__ == '__main__':
@@ -64,10 +73,13 @@ if __name__ == '__main__':
 	if(FLAGS.help):
 		Usage()
 		
+	#dns.name.from_text(
 	domain = sys.argv[1]
 	
 	if FLAGS.dtypes:
+		print "# Performing lookup based on domain types."
 		DTypes(domain)
+		print
 	
 	if FLAGS.axfr:
 		# We need to get external ip if we want to attempt a zone transfer here.
@@ -79,7 +91,9 @@ if __name__ == '__main__':
 			print z[n].to_text(n)
 			
 	if FLAGS.dictionary:
+		print "# Performing dictionary lookup"
 		Dictionary(domain)
+		print
 		
 			
 
