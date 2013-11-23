@@ -40,7 +40,6 @@ def Usage():
 		
 
 def DTypes(domain):
-	
 	for _type in dns.rdtypes.ANY.__all__ + dns.rdtypes.IN.__all__:
 		try:
 			#print _type
@@ -51,10 +50,14 @@ def DTypes(domain):
 			pass # No Answer.
 
 def Dictionary(domain):
+	client = MongoClient()
+	db = client.dns_spy_db
+	
 	# for now hardcoded.	
-	subs = ['www','demo', 'api', 'test']		
+	subs = db.subdomains.find()
 	for sub in subs:
-		q = sub + "." + domain
+		q = sub["name"] + "." + domain
+		#print "Trying ", q
 		try:
 			answers = dns.resolver.query(q)
 			for rdata in answers:
