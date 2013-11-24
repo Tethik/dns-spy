@@ -12,7 +12,15 @@ def collect(collection):
 	try:	
 		client = MongoClient()
 		db = client[dbname]		
-		db[collection].insert(dict(request.form))
+		copy = dict()
+		for key, val in request.form.iteritems():
+			try:
+				app.logger.debug(str(key) + " " + str(val))
+				copy[key] = "".join(val)
+			except ValueError:
+				pass
+		app.logger.debug("Adding " + str(copy))
+		db[collection].insert(copy)
 	except Exception as ex:
 		app.logger.error(ex)
 		return str(ex)
