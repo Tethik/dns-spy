@@ -9,4 +9,5 @@ Requirements
 * PyMongo
 * dnspython ( https://github.com/rthalley/dnspython )
 * gflags
+* Flask
 
