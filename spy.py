@@ -10,7 +10,7 @@ import dns.rdtypes.ANY
 import dns.name
 
 __program__         = 'dns-spy'
-__version__         = 'v0.1'
+__version__         = 'v0.2331'
 __author__          = 'Joakim Uddholm'
 __doc__             = """
 USAGE: %s <domain>
@@ -55,10 +55,9 @@ def Dictionary(domain):
 	
 	# for now hardcoded.	
 	subs = db.subdomains.find()
-	for sub in subs:
-		q = sub["name"] + "." + domain
-		#print "Trying ", q
+	for sub in subs:				
 		try:
+			q = sub["name"] + "." + domain
 			answers = dns.resolver.query(q)
 			for rdata in answers:
 				print q, rdata
