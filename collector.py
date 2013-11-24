@@ -13,6 +13,8 @@ def collect(collection):
 		client = MongoClient()
 		db = client[dbname]		
 		copy = dict()
+		if len(request.form) == 0:
+			return ""
 		for key, val in request.form.iteritems():
 			try:
 				app.logger.debug(str(key) + " " + str(val))
