@@ -102,14 +102,14 @@ if __name__ == '__main__':
 		DTypes(domain)
 		print
 	
-	if FLAGS.axfr:
+	#if FLAGS.axfr:
 		# We need to get external ip if we want to attempt a zone transfer here.
 		# Todo.
-		z = dns.zone.from_xfr(dns.query.xfr('127.0.0.1', 'ns-1176.awsdns-19.org'))
-		names = z.nodes.keys()
-		names.sort()
-		for n in names:
-			print z[n].to_text(n)
+	#	z = dns.zone.from_xfr(dns.query.xfr('127.0.0.1', 'ns-1176.awsdns-19.org'))
+	#	names = z.nodes.keys()
+	#	names.sort()
+	#	for n in names:
+	#		print z[n].to_text(n)
 			
 	if FLAGS.dictionary:
 		print "# Performing dictionary lookup"
