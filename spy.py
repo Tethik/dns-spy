@@ -8,6 +8,7 @@ import dns.resolver
 import dns.rdtypes.IN
 import dns.rdtypes.ANY
 import dns.name
+import random, string
 
 __program__         = 'dns-spy'
 __version__         = 'v0.2331'
@@ -53,6 +54,22 @@ def Dictionary(domain):
 	client = MongoClient()
 	db = client.dns_spy_db
 	
+	# check wildcard.
+	r = ""
+	for _ in range(12):
+		r += random.choice(string.lowercase)
+	q = r + "." + domain
+	wildcard_ips = list()
+	
+	try:
+		answers = dns.resolver.query(q)
+		
+		for ans in answers:
+			wildcard_ips.append(ans)
+			print "*."+domain, ans
+	except:
+		pass
+	
 	# for now hardcoded.	
 	subs = db.subdomains.find()
 	for sub in subs:				
@@ -60,7 +77,10 @@ def Dictionary(domain):
 			q = sub["name"] + "." + domain
 			answers = dns.resolver.query(q)
 			for rdata in answers:
-				print q, rdata
+				#print q, rdata
+				if(rdata not in wildcard_ips):
+					print q, rdata
+				
 		except:
 			pass # No match.
 	
@@ -75,7 +95,6 @@ if __name__ == '__main__':
 	if(FLAGS.help):
 		Usage()
 		
-	#dns.name.from_text(
 	domain = sys.argv[1]
 	
 	if FLAGS.dtypes:
