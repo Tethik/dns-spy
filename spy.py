@@ -2,6 +2,7 @@
 
 import sys, gflags
 from pymongo import MongoClient
+import pymongo
 import dns.query
 import dns.zone
 import dns.resolver
@@ -71,7 +72,7 @@ def Dictionary(domain):
 		pass
 	
 	# for now hardcoded.	
-	subs = db.subdomains.find()
+	subs = db.subdomains.find().sort('count', pymongo.DESCENDING)
 	for sub in subs:				
 		try:
 			q = sub["name"] + "." + domain

@@ -1,4 +1,4 @@
-endpoint = "http://localhost:5000/subdomains";
+endpoint = "http://localhost:5337/subdomains";
 
 function collect(details) {
 	var regex = /^([a-z]+):\/\/([a-z0-9\-]+)\.([a-z0-9\-]+)\.([a-z0-9\-]+)/
@@ -17,6 +17,5 @@ function collect(details) {
 	
 }
 
-//chrome.runtime.onInstalled.addListener(function() {
 chrome.webRequest.onCompleted.addListener(collect, {urls: ["<all_urls>"]});
-//});
+

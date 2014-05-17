@@ -7,28 +7,24 @@ app = Flask(__name__)
 
 dbname = ""
 
-@app.route("/<collection>", methods=['POST'])
-def collect(collection):
+@app.route("/subdomains", methods=['POST'])
+def collect():
 	try:	
 		client = MongoClient()
 		db = client[dbname]		
-		copy = dict()
 		if len(request.form) == 0:
 			return ""
-		for key, val in request.form.iteritems():
-			try:
-				app.logger.debug(str(key) + " " + str(val))
-				copy[key] = "".join(val)
-			except ValueError:
-				pass
-		app.logger.debug("Adding " + str(copy))
-		db[collection].insert(copy)
+		
+		name = request.form.get("name")				
+		app.logger.debug("Updating " + str(name))				
+		db["subdomains"].update({ "name": name }, {"$inc": { "count": 1 }}, upsert=True)
+		
 	except Exception as ex:
 		app.logger.error(ex)
 		return str(ex)
 	return ""
 
 if __name__ == "__main__":
-	dbname = sys.argv[1]
-	app.run(debug=True)
+	dbname = "dns_spy_db"
+	app.run(debug=True, port=5337)
     
