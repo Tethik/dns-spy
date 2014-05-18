@@ -29,9 +29,8 @@ gflags.DEFINE_bool("help", None, "Show this help")
 #gflags.DEFINE_string("axfr", False, "Attempt to zone transfer")
 gflags.DEFINE_bool("dtypes", True, "Bruteforce on dns types")
 gflags.DEFINE_bool("axfr", False, "Attempt to zone transfer")
-#gflags.DEFINE_integer("maxdepartures", 10, "Max amount of departures to show")
 gflags.DEFINE_bool("dictionary", True, "Perform dictionary based guessing")
-#gflags.DEFINE_multistring("types", ['bus','train','metro','tram'], "Which types of transit to include. Possible: bus, train, metro or tram")
+gflags.DEFINE_integer("brute", 3, "Bruteforce based on n-grams")
 
 def Usage():
 	print __program__
@@ -50,40 +49,69 @@ def DTypes(domain):
 				print _type, rdata
 		except:
 			pass # No Answer.
+			
+def _test_subdomain(sub, domain):	
+	global wildcard_ips
+	q = sub + "." + domain
+	try:
+		answers = dns.resolver.query(q)
+		for rdata in answers:
+			if(rdata not in wildcard_ips):
+				print q, rdata
+	except dns.resolver.NXDOMAIN:
+		pass
+	except dns.resolver.NoAnswer:
+		pass
 
-def Dictionary(domain):
-	client = MongoClient()
-	db = client.dns_spy_db
-	
-	# check wildcard.
+			
+			
+def Brute(domain):
+	length = 1
+	letters = string.lowercase + string.digits
+	lastchar = letters[len(letters) - 1]
+	sub = list()
+	while len(sub) <= FLAGS.brute:
+		if len(sub) == 0 or sub == [lastchar]*len(sub):
+			sub.append(letters[0])
+		
+		for c in letters:
+			sub[len(sub) - 1] = c
+			_test_subdomain("".join(sub), domain)
+			
+		# shift
+		i = len(sub) - 2
+		while i >= 0:
+			if sub[i] != lastchar:
+				sub[i] = letters[letters.index(sub[i]) + 1]
+				break					
+			sub[i] = letters[0]
+			i -= 1			
+			
+			
+wildcard_ips = list()
+def Wildcard(domain):
+	global wildcard_ips	
 	r = ""
 	for _ in range(12):
 		r += random.choice(string.lowercase)
 	q = r + "." + domain
-	wildcard_ips = list()
 	
 	try:
-		answers = dns.resolver.query(q)
-		
+		answers = dns.resolver.query(q)	
 		for ans in answers:
 			wildcard_ips.append(ans)
 			print "*."+domain, ans
-	except:
+	except dns.resolver.NXDOMAIN:
 		pass
+
+def Dictionary(domain):
+	global wildcard_ips
+	client = MongoClient()
+	db = client.dns_spy_db
 	
-	# for now hardcoded.	
 	subs = db.subdomains.find().sort('count', pymongo.DESCENDING)
 	for sub in subs:				
-		try:
-			q = sub["name"] + "." + domain
-			answers = dns.resolver.query(q)
-			for rdata in answers:
-				#print q, rdata
-				if(rdata not in wildcard_ips):
-					print q, rdata
-				
-		except:
-			pass # No match.
+		_test_subdomain(sub["name"], domain)					
 	
 
 if __name__ == '__main__':
@@ -97,6 +125,9 @@ if __name__ == '__main__':
 		Usage()
 		
 	domain = sys.argv[1]
+	
+	print "# Determining wildcard."
+	Wildcard(domain)
 	
 	if FLAGS.dtypes:
 		print "# Performing lookup based on domain types."
@@ -115,6 +146,11 @@ if __name__ == '__main__':
 	if FLAGS.dictionary:
 		print "# Performing dictionary lookup"
 		Dictionary(domain)
+		print
+		
+	if FLAGS.brute > 0:
+		print "# Normal bruteforce up to %i number of subdomains." % FLAGS.brute
+		Brute(domain)
 		print
 		
 			
